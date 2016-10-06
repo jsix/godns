@@ -24,7 +24,7 @@ var (
 	loginToken string
 )
 
-// 获取接口登陆Token
+// 获取接口登录Token
 func getLoginToken() string {
 	if loginToken == "" {
 		loginToken = fmt.Sprintf("%d,%s", Configuration.ApiId, Configuration.ApiToken)
