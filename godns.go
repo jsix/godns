@@ -12,6 +12,7 @@ import (
 	"runtime/debug"
 	"strings"
 	"time"
+	"regexp"
 )
 
 const (
@@ -73,7 +74,7 @@ func LoadSettings(config_path string) *Settings {
 func main() {
 	flag.BoolVar(&optHelp, "help", false, "this help")
 	flag.StringVar(&optConf, "conf", "godns.conf", "config file")
-	flag.BoolVar(&resolveInternal, "internal", false, "external or internal")
+	flag.BoolVar(&resolveInternal, "i", false, "external or internal")
 
 	flag.Parse()
 	if optHelp {
@@ -135,16 +136,20 @@ func checkDomain() {
 		log.Println("[ GoDns][ Error] - domain :", Domain, " dont't be resolve by DnsPod.")
 		os.Exit(0)
 	}
+	regex := regexp.MustCompile("[;$#^&]")
+	if regex.MatchString(Configuration.SubDomains){
+		log.Println("[ GoDns][ Error] - multi sub domains use \",\" split!")
+		os.Exit(1)
+	}
 
 	SubDomainArr = strings.Split(Configuration.SubDomains, ",")
-	for i, v := range SubDomainArr {
+	for _, v := range SubDomainArr {
 		v = strings.TrimSpace(v)
 		if len(v) != 0 {
 			subDomainId, ip := getSubDomain(DomainId, v)
 			subDomain := v + "." + Domain
 			if subDomainId == "" || ip == "" {
 				log.Println("[ GoDns][ Wanning] - ", subDomain, " not in list.")
-				SubDomainArr = append(SubDomainArr[:i], SubDomainArr[i+1:]...)
 			} else {
 				log.Println("[ GoDns][ Stat] - ", subDomain, "=>", ip)
 				SubDomainIdArr = append(SubDomainIdArr, subDomainId)
